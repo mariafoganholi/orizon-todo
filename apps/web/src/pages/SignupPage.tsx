@@ -1,6 +1,6 @@
-import { useState, type FormEvent } from "react";
+import { useState, type SubmitEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { register, saveToken } from "../api/client";
+import { register, saveToken } from "../api/auth";
 
 export default function SignupPage() {
   const navigate = useNavigate();
@@ -12,7 +12,7 @@ export default function SignupPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
 
@@ -33,7 +33,9 @@ export default function SignupPage() {
       saveToken(data.token);
       navigate("/todos", { replace: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not create your account");
+      setError(
+        err instanceof Error ? err.message : "Could not create your account"
+      );
     } finally {
       setLoading(false);
     }
@@ -44,7 +46,9 @@ export default function SignupPage() {
       <section className="auth-card" aria-labelledby="signup-heading">
         <p className="auth-eyebrow">Get organized</p>
         <h1 id="signup-heading">Create your account</h1>
-        <p className="auth-description">Start planning your todos in one place.</p>
+        <p className="auth-description">
+          Start planning your todos in one place.
+        </p>
 
         <form className="auth-form" onSubmit={handleSubmit}>
           <div className="auth-name-fields">
@@ -95,7 +99,11 @@ export default function SignupPage() {
               required
             />
           </label>
-          {error && <p className="form-error" role="alert">{error}</p>}
+          {error && (
+            <p className="form-error" role="alert">
+              {error}
+            </p>
+          )}
           <button className="button" type="submit" disabled={loading}>
             {loading ? "Creating account..." : "Create account"}
           </button>

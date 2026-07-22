@@ -1,10 +1,10 @@
-import type { FormEvent } from "react";
+import type { SubmitEvent } from "react";
 
 type CategoryComposerProps = {
   category: string;
   error: string;
   onCategoryChange: (category: string) => void;
-  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+  onSubmit: (event: SubmitEvent<HTMLFormElement>) => void;
   onCancel: () => void;
 };
 
@@ -28,8 +28,16 @@ export default function CategoryComposer({
         />
       </label>
       <div className="inline-actions">
-        <button className="button" type="submit">Continue</button>
-        <button className="button button-secondary" type="button" onClick={onCancel}>Cancel</button>
+        <button className="button" type="submit">
+          Continue
+        </button>
+        <button
+          className="button button-secondary"
+          type="button"
+          onClick={onCancel}
+        >
+          Cancel
+        </button>
       </div>
       {error && <p className="form-error">{error}</p>}
     </form>

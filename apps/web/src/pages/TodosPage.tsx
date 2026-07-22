@@ -1,19 +1,27 @@
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type SubmitEvent,
+} from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  ApiAuthError,
-  clearToken,
   createTodo,
-  getToken,
   listTodos,
   updateTodoStatus,
   type Todo,
   type TodoStatus,
-} from "../api/client";
+} from "../api/todo";
+import { clearToken, getToken, ApiAuthError } from "../api/auth";
 import CategoryComposer from "../components/todos/CategoryComposer";
 import CategoryNavigation from "../components/todos/CategoryNavigation";
 import TaskPanel from "../components/todos/TaskPanel";
-import { getCategories, normalizeCategory, sameCategory } from "../components/todos/categoryUtils";
+import {
+  getCategories,
+  normalizeCategory,
+  sameCategory,
+} from "../components/todos/categoryUtils";
 
 export default function TodosPage() {
   const navigate = useNavigate();
@@ -74,9 +82,15 @@ export default function TodosPage() {
     };
   }, [handleAuthError, navigate]);
 
-  const categories = useMemo(() => getCategories(todos, draftCategory), [todos, draftCategory]);
+  const categories = useMemo(
+    () => getCategories(todos, draftCategory),
+    [todos, draftCategory]
+  );
   const selectedTodos = useMemo(
-    () => selectedCategory ? todos.filter((todo) => sameCategory(todo.category, selectedCategory)) : [],
+    () =>
+      selectedCategory
+        ? todos.filter((todo) => sameCategory(todo.category, selectedCategory))
+        : [],
     [selectedCategory, todos]
   );
   const activeTodos = selectedTodos.filter((todo) => todo.status === "pending");
@@ -94,7 +108,7 @@ export default function TodosPage() {
     setIsAddingCategory(false);
   }
 
-  function handleAddCategory(event: FormEvent<HTMLFormElement>) {
+  function handleAddCategory(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     const category = normalizeCategory(newCategory);
     if (!category) {
@@ -106,7 +120,9 @@ export default function TodosPage() {
       return;
     }
 
-    const existingCategory = categories.find((current) => sameCategory(current, category));
+    const existingCategory = categories.find((current) =>
+      sameCategory(current, category)
+    );
     const categoryToSelect = existingCategory ?? category;
     setDraftCategory(existingCategory ? draftCategory : categoryToSelect);
     setSelectedCategory(categoryToSelect);
@@ -129,7 +145,10 @@ export default function TodosPage() {
   }
 
   function cancelTodoComposer() {
-    const wasDraft = addingTodoFor && draftCategory && sameCategory(addingTodoFor, draftCategory);
+    const wasDraft =
+      addingTodoFor &&
+      draftCategory &&
+      sameCategory(addingTodoFor, draftCategory);
     setTodoError("");
     setDescription("");
     setAddingTodoFor(null);
@@ -139,7 +158,10 @@ export default function TodosPage() {
     }
   }
 
-  async function handleCreateTodo(event: FormEvent<HTMLFormElement>, category: string) {
+  async function handleCreateTodo(
+    event: SubmitEvent<HTMLFormElement>,
+    category: string
+  ) {
     event.preventDefault();
     const trimmedDescription = description.trim();
     setTodoError("");
@@ -150,7 +172,11 @@ export default function TodosPage() {
 
     setCreatingTodo(true);
     try {
-      const createdTodo = await createTodo({ description: trimmedDescription, category, status: "pending" });
+      const createdTodo = await createTodo({
+        description: trimmedDescription,
+        category,
+        status: "pending",
+      });
       setTodos((currentTodos) => [createdTodo, ...currentTodos]);
       setSelectedCategory(createdTodo.category);
       setDraftCategory(null);
@@ -158,7 +184,9 @@ export default function TodosPage() {
       setAddingTodoFor(null);
     } catch (err) {
       if (handleAuthError(err)) return;
-      setTodoError(err instanceof Error ? err.message : "Could not create todo");
+      setTodoError(
+        err instanceof Error ? err.message : "Could not create todo"
+      );
     } finally {
       setCreatingTodo(false);
     }
@@ -170,12 +198,16 @@ export default function TodosPage() {
     setUpdatingTodoId(todo.id);
     try {
       const updatedTodo = await updateTodoStatus(todo.id, status);
-      setTodos((currentTodos) => currentTodos.map((currentTodo) =>
-        currentTodo.id === updatedTodo.id ? updatedTodo : currentTodo
-      ));
+      setTodos((currentTodos) =>
+        currentTodos.map((currentTodo) =>
+          currentTodo.id === updatedTodo.id ? updatedTodo : currentTodo
+        )
+      );
     } catch (err) {
       if (handleAuthError(err)) return;
-      setStatusError(err instanceof Error ? err.message : "Could not update status");
+      setStatusError(
+        err instanceof Error ? err.message : "Could not update status"
+      );
     } finally {
       setUpdatingTodoId(null);
     }
@@ -188,10 +220,14 @@ export default function TodosPage() {
           <p className="todo-eyebrow">Workspace</p>
           <h1>My tasks</h1>
         </div>
-        <button className="logout-button" type="button" onClick={() => {
-          clearToken();
-          navigate("/login", { replace: true });
-        }}>
+        <button
+          className="logout-button"
+          type="button"
+          onClick={() => {
+            clearToken();
+            navigate("/login", { replace: true });
+          }}
+        >
           Log out
         </button>
       </header>
@@ -222,7 +258,13 @@ export default function TodosPage() {
             <section className="empty-state">
               <h2>Create your first category</h2>
               <p>Group the things you want to get done.</p>
-              <button className="button" type="button" onClick={openNewCategory}>Add new category</button>
+              <button
+                className="button"
+                type="button"
+                onClick={openNewCategory}
+              >
+                Add new category
+              </button>
             </section>
           ) : selectedCategory ? (
             <TaskPanel
@@ -230,15 +272,21 @@ export default function TodosPage() {
               activeTodos={activeTodos}
               completedTodos={completedTodos}
               description={description}
-              isComposerOpen={Boolean(addingTodoFor && sameCategory(addingTodoFor, selectedCategory))}
+              isComposerOpen={Boolean(
+                addingTodoFor && sameCategory(addingTodoFor, selectedCategory)
+              )}
               isCreating={creatingTodo}
               updatingTodoId={updatingTodoId}
               error={todoError}
               onDescriptionChange={setDescription}
               onOpenComposer={() => openTodoComposer(selectedCategory)}
               onCancelComposer={cancelTodoComposer}
-              onCreateTodo={(event) => void handleCreateTodo(event, selectedCategory)}
-              onStatusChange={(todo, status) => void handleStatusChange(todo, status)}
+              onCreateTodo={(event) =>
+                void handleCreateTodo(event, selectedCategory)
+              }
+              onStatusChange={(todo, status) =>
+                void handleStatusChange(todo, status)
+              }
             />
           ) : null}
         </>

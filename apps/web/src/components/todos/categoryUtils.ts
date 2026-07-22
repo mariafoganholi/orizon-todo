@@ -1,14 +1,19 @@
-import type { Todo } from "../../api/client";
+import type { Todo } from "../../api/todo";
 
 export function normalizeCategory(category: string): string {
   return category.trim();
 }
 
 export function sameCategory(first: string, second: string): boolean {
-  return first.localeCompare(second, undefined, { sensitivity: "accent" }) === 0;
+  return (
+    first.localeCompare(second, undefined, { sensitivity: "accent" }) === 0
+  );
 }
 
-export function getCategories(todos: Todo[], draftCategory: string | null): string[] {
+export function getCategories(
+  todos: Todo[],
+  draftCategory: string | null
+): string[] {
   const categories: string[] = [];
 
   for (const todo of todos) {
@@ -17,7 +22,10 @@ export function getCategories(todos: Todo[], draftCategory: string | null): stri
     }
   }
 
-  if (draftCategory && !categories.some((category) => sameCategory(category, draftCategory))) {
+  if (
+    draftCategory &&
+    !categories.some((category) => sameCategory(category, draftCategory))
+  ) {
     categories.unshift(draftCategory);
   }
 

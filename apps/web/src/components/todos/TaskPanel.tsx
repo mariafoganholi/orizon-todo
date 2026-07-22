@@ -1,5 +1,5 @@
-import type { FormEvent } from "react";
-import type { Todo, TodoStatus } from "../../api/client";
+import type { SubmitEvent } from "react";
+import type { Todo, TodoStatus } from "../../api/todo";
 
 type TaskPanelProps = {
   category: string;
@@ -13,7 +13,7 @@ type TaskPanelProps = {
   onDescriptionChange: (description: string) => void;
   onOpenComposer: () => void;
   onCancelComposer: () => void;
-  onCreateTodo: (event: FormEvent<HTMLFormElement>) => void;
+  onCreateTodo: (event: SubmitEvent<HTMLFormElement>) => void;
   onStatusChange: (todo: Todo, status: TodoStatus) => void;
 };
 
@@ -31,7 +31,9 @@ function TaskRow({
   return (
     <li className={`task-row${completed ? " is-completed" : ""}`}>
       <input
-        aria-label={`Mark ${todo.description} as ${completed ? "active" : "completed"}`}
+        aria-label={`Mark ${todo.description} as ${
+          completed ? "active" : "completed"
+        }`}
         checked={completed}
         disabled={disabled}
         type="checkbox"
@@ -91,22 +93,36 @@ export default function TaskPanel({
             <button className="button" disabled={isCreating} type="submit">
               {isCreating ? "Adding…" : "Add item"}
             </button>
-            <button className="button button-secondary" disabled={isCreating} type="button" onClick={onCancelComposer}>
+            <button
+              className="button button-secondary"
+              disabled={isCreating}
+              type="button"
+              onClick={onCancelComposer}
+            >
               Cancel
             </button>
           </div>
           {error && <p className="form-error">{error}</p>}
         </form>
       ) : (
-        <button className="add-item-button" type="button" onClick={onOpenComposer}>
+        <button
+          className="add-item-button"
+          type="button"
+          onClick={onOpenComposer}
+        >
           <span aria-hidden="true">+</span> Add new item
         </button>
       )}
 
       {completedTodos.length > 0 && (
         <section className="completed-section">
-          <h3>Completed <span aria-hidden="true">✓</span></h3>
-          <ul className="task-list" aria-label={`Completed tasks in ${category}`}>
+          <h3>
+            Completed <span aria-hidden="true">✓</span>
+          </h3>
+          <ul
+            className="task-list"
+            aria-label={`Completed tasks in ${category}`}
+          >
             {completedTodos.map((todo) => (
               <TaskRow
                 key={todo.id}
