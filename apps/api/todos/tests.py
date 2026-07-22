@@ -37,6 +37,10 @@ class TodoFlowE2ETest(APITestCase):
         self.assertEqual(create_response.status_code, status.HTTP_201_CREATED)
         todo_id = create_response.data['id']
         self.assertEqual(create_response.data['status'], 'pending')
+        self.assertIsNotNone(create_response.data['created_at'])
+        self.assertIsNotNone(create_response.data['updated_at'])
+        created_at = create_response.data['created_at']
+        initial_updated_at = create_response.data['updated_at']
 
         # 3) lista todos
         list_response = self.client.get('/api/todos/')
@@ -52,6 +56,8 @@ class TodoFlowE2ETest(APITestCase):
         )
         self.assertEqual(update_response.status_code, status.HTTP_200_OK)
         self.assertEqual(update_response.data['status'], 'done')
+        self.assertEqual(update_response.data['created_at'], created_at)
+        self.assertNotEqual(update_response.data['updated_at'], initial_updated_at)
 
         # 5) lista com filtro
         filtered_done = self.client.get('/api/todos/', {'status': 'done'})

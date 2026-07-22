@@ -1,0 +1,32 @@
+# Environment variables and local configuration
+.env
+.env.*
+!.env.example
+*.local
+
+# React / Vite app (apps/web)
+apps/web/node_modules/
+apps/web/dist/
+apps/web/dist-ssr/
+apps/web/.vite/
+
+# Django app (apps/api)
+apps/api/.venv/
+apps/api/venv/
+apps/api/env/
+apps/api/db.sqlite3
+apps/api/*.sqlite3
+apps/api/__pycache__/
+apps/api/**/*.py[cod]
+apps/api/.pytest_cache/
+apps/api/.coverage
+apps/api/htmlcov/
+apps/api/staticfiles/
+apps/api/media/
+
+# Tooling, editor, and operating-system files
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.log

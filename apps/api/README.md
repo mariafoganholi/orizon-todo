@@ -30,7 +30,7 @@ todo_project/
 | -------------------------- | ---------------------------------------------------------------------------------------- |
 | `todo_project/settings.py` | Configuração do projeto (apps, banco SQLite, DRF)                                        |
 | `todo_project/urls.py`     | Rotas da API (`/api/login/`, `/api/register/`, `/api/todos/`, `/api/todos/<id>/status/`) |
-| `todos/models.py`          | Model `Todo` (id, user_id, description, status, category)                                |
+| `todos/models.py`          | Model `Todo` (id, user_id, description, status, category, created_at, updated_at)        |
 | `todos/serializers.py`     | `RegisterSerializer`, `TodoSerializer`                                                   |
 | `todos/views.py`           | Views de registro, login, criação/listagem/atualização de TODOs                          |
 | `todos/admin.py`           | Configuração do Django Admin                                                             |
@@ -159,7 +159,9 @@ Resposta (`201`):
   "user": 2,
   "description": "Comprar leite",
   "status": "pending",
-  "category": "compras"
+  "category": "compras",
+  "created_at": "2026-07-22T14:05:00Z",
+  "updated_at": "2026-07-22T14:05:00Z"
 }
 ```
 

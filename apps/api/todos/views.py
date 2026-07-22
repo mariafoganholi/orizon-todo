@@ -69,5 +69,5 @@ class TodoStatusUpdateView(APIView):
             )
 
         todo.status = new_status
-        todo.save(update_fields=['status'])
+        todo.save(update_fields=['status', 'updated_at'])
         return Response(TodoSerializer(todo).data)
