@@ -10,50 +10,20 @@ import {
   type Todo,
   type TodoStatus,
 } from "../api/client";
-
-const TODO_STATUSES: TodoStatus[] = ["pending", "in_progress", "done"];
-const STATUS_LABELS: Record<TodoStatus, string> = {
-  pending: "Pending",
-  in_progress: "In progress",
-  done: "Done",
-};
-
-function normalizeCategory(category: string): string {
-  return category.trim();
-}
-
-function mergeCategory(categories: string[], category: string): string[] {
-  const normalized = normalizeCategory(category);
-
-  if (!normalized) return categories;
-
-  return categories.some(
-    (currentCategory) =>
-      currentCategory.toLocaleLowerCase() === normalized.toLocaleLowerCase()
-  )
-    ? categories
-    : [...categories, normalized];
-}
-
-function getCategoryDisplayValue(categories: string[], category: string): string {
-  const normalized = normalizeCategory(category);
-  return (
-    categories.find(
-      (currentCategory) =>
-        currentCategory.toLocaleLowerCase() === normalized.toLocaleLowerCase()
-    ) ?? normalized
-  );
-}
+import CategoryComposer from "../components/todos/CategoryComposer";
+import CategoryNavigation from "../components/todos/CategoryNavigation";
+import TaskPanel from "../components/todos/TaskPanel";
+import { getCategories, normalizeCategory, sameCategory } from "../components/todos/categoryUtils";
 
 export default function TodosPage() {
   const navigate = useNavigate();
   const [todos, setTodos] = useState<Todo[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [draftCategory, setDraftCategory] = useState<string | null>(null);
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [newCategory, setNewCategory] = useState("");
   const [addingTodoFor, setAddingTodoFor] = useState<string | null>(null);
   const [description, setDescription] = useState("");
-  const [newTodoStatus, setNewTodoStatus] = useState<TodoStatus>("pending");
   const [loading, setLoading] = useState(true);
   const [creatingTodo, setCreatingTodo] = useState(false);
   const [updatingTodoId, setUpdatingTodoId] = useState<number | null>(null);
@@ -65,7 +35,6 @@ export default function TodosPage() {
   const handleAuthError = useCallback(
     (err: unknown) => {
       if (!(err instanceof ApiAuthError)) return false;
-
       clearToken();
       navigate("/login", {
         replace: true,
@@ -83,23 +52,14 @@ export default function TodosPage() {
     }
 
     let ignore = false;
-
     async function loadTodos() {
       setLoading(true);
       setError("");
-
       try {
         const loadedTodos = await listTodos();
         if (ignore) return;
-
         setTodos(loadedTodos);
-        setCategories(
-          loadedTodos.reduce<string[]>(
-            (currentCategories, todo) =>
-              mergeCategory(currentCategories, todo.category),
-            []
-          )
-        );
+        setSelectedCategory(getCategories(loadedTodos, null)[0] ?? null);
       } catch (err) {
         if (ignore || handleAuthError(err)) return;
         setError(err instanceof Error ? err.message : "Could not load todos");
@@ -114,14 +74,13 @@ export default function TodosPage() {
     };
   }, [handleAuthError, navigate]);
 
-  const groupedTodos = useMemo(
-    () =>
-      categories.map((category) => ({
-        category,
-        todos: todos.filter((todo) => todo.category === category),
-      })),
-    [categories, todos]
+  const categories = useMemo(() => getCategories(todos, draftCategory), [todos, draftCategory]);
+  const selectedTodos = useMemo(
+    () => selectedCategory ? todos.filter((todo) => sameCategory(todo.category, selectedCategory)) : [],
+    [selectedCategory, todos]
   );
+  const activeTodos = selectedTodos.filter((todo) => todo.status === "pending");
+  const completedTodos = selectedTodos.filter((todo) => todo.status === "done");
 
   function openNewCategory() {
     setCategoryError("");
@@ -135,46 +94,55 @@ export default function TodosPage() {
     setIsAddingCategory(false);
   }
 
-  function handleAddCategory(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  function handleAddCategory(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     const category = normalizeCategory(newCategory);
-
     if (!category) {
       setCategoryError("Enter a category name.");
       return;
     }
-
     if (category.length > 100) {
       setCategoryError("Category names can be up to 100 characters.");
       return;
     }
 
-    const nextCategories = mergeCategory(categories, category);
-    const categoryName = getCategoryDisplayValue(nextCategories, category);
-    setCategories(nextCategories);
-    setNewCategory("");
-    setIsAddingCategory(false);
-    setAddingTodoFor(categoryName);
+    const existingCategory = categories.find((current) => sameCategory(current, category));
+    const categoryToSelect = existingCategory ?? category;
+    setDraftCategory(existingCategory ? draftCategory : categoryToSelect);
+    setSelectedCategory(categoryToSelect);
+    setAddingTodoFor(categoryToSelect);
+    setDescription("");
+    setTodoError("");
+    cancelNewCategory();
+  }
+
+  function selectCategory(category: string) {
+    setSelectedCategory(category);
+    setAddingTodoFor(null);
+    setTodoError("");
   }
 
   function openTodoComposer(category: string) {
     setTodoError("");
     setDescription("");
-    setNewTodoStatus("pending");
     setAddingTodoFor(category);
   }
 
   function cancelTodoComposer() {
+    const wasDraft = addingTodoFor && draftCategory && sameCategory(addingTodoFor, draftCategory);
     setTodoError("");
     setDescription("");
     setAddingTodoFor(null);
+    if (wasDraft) {
+      setDraftCategory(null);
+      setSelectedCategory(getCategories(todos, null)[0] ?? null);
+    }
   }
 
-  async function handleCreateTodo(e: FormEvent<HTMLFormElement>, category: string) {
-    e.preventDefault();
-    setTodoError("");
+  async function handleCreateTodo(event: FormEvent<HTMLFormElement>, category: string) {
+    event.preventDefault();
     const trimmedDescription = description.trim();
-
+    setTodoError("");
     if (!trimmedDescription) {
       setTodoError("Enter a todo description.");
       return;
@@ -182,16 +150,12 @@ export default function TodosPage() {
 
     setCreatingTodo(true);
     try {
-      const createdTodo = await createTodo({
-        description: trimmedDescription,
-        category,
-        status: newTodoStatus,
-      });
+      const createdTodo = await createTodo({ description: trimmedDescription, category, status: "pending" });
       setTodos((currentTodos) => [createdTodo, ...currentTodos]);
-      setCategories((currentCategories) =>
-        mergeCategory(currentCategories, createdTodo.category)
-      );
-      cancelTodoComposer();
+      setSelectedCategory(createdTodo.category);
+      setDraftCategory(null);
+      setDescription("");
+      setAddingTodoFor(null);
     } catch (err) {
       if (handleAuthError(err)) return;
       setTodoError(err instanceof Error ? err.message : "Could not create todo");
@@ -202,16 +166,13 @@ export default function TodosPage() {
 
   async function handleStatusChange(todo: Todo, status: TodoStatus) {
     if (todo.status === status) return;
-
     setStatusError("");
     setUpdatingTodoId(todo.id);
     try {
       const updatedTodo = await updateTodoStatus(todo.id, status);
-      setTodos((currentTodos) =>
-        currentTodos.map((currentTodo) =>
-          currentTodo.id === updatedTodo.id ? updatedTodo : currentTodo
-        )
-      );
+      setTodos((currentTodos) => currentTodos.map((currentTodo) =>
+        currentTodo.id === updatedTodo.id ? updatedTodo : currentTodo
+      ));
     } catch (err) {
       if (handleAuthError(err)) return;
       setStatusError(err instanceof Error ? err.message : "Could not update status");
@@ -222,137 +183,68 @@ export default function TodosPage() {
 
   return (
     <main className="todo-page">
-      <header className="todo-header">
+      <header className="workspace-header">
         <div>
           <p className="todo-eyebrow">Workspace</p>
-          <h1>Todos</h1>
+          <h1>My tasks</h1>
         </div>
-        <div className="todo-header-actions">
-          <button className="button" type="button" onClick={openNewCategory}>
-            New category
-          </button>
-          <button
-            className="button button-secondary"
-            type="button"
-            onClick={() => {
-              clearToken();
-              navigate("/login", { replace: true });
-            }}
-          >
-            Log out
-          </button>
-        </div>
+        <button className="logout-button" type="button" onClick={() => {
+          clearToken();
+          navigate("/login", { replace: true });
+        }}>
+          Log out
+        </button>
       </header>
 
       {error && <p className="alert alert-error">{error}</p>}
       {statusError && <p className="alert alert-error">{statusError}</p>}
 
-      <section className="todo-list" aria-live="polite">
-        {isAddingCategory && (
-          <form className="category-group category-group-new" onSubmit={handleAddCategory}>
-            <label className="category-title-input">
-              <span className="sr-only">Category title</span>
-              <input
-                autoFocus
-                maxLength={100}
-                value={newCategory}
-                onChange={(e) => setNewCategory(e.target.value)}
-                placeholder="Category title"
-              />
-            </label>
-            <div className="inline-actions">
-              <button className="button" type="submit">
-                Add category
-              </button>
-              <button className="button button-secondary" type="button" onClick={cancelNewCategory}>
-                Cancel
-              </button>
-            </div>
-            {categoryError && <p className="form-error">{categoryError}</p>}
-          </form>
-        )}
+      {!loading && (
+        <>
+          <CategoryNavigation
+            categories={categories}
+            selectedCategory={selectedCategory}
+            onSelectCategory={selectCategory}
+            onAddCategory={openNewCategory}
+          />
 
-        {loading ? (
-          <p className="muted">Loading todos...</p>
-        ) : groupedTodos.length === 0 && !isAddingCategory ? (
-          <div className="empty-state">
-            <p>Organize your next tasks into categories.</p>
-            <button className="button" type="button" onClick={openNewCategory}>
-              New category
-            </button>
-          </div>
-        ) : (
-          groupedTodos.map(({ category, todos: categoryTodos }) => (
-            <section className="category-group" key={category}>
-              <div className="category-heading">
-                <h2>{category}</h2>
-                <span aria-label={`${categoryTodos.length} todos`}>{categoryTodos.length}</span>
-              </div>
+          {isAddingCategory && (
+            <CategoryComposer
+              category={newCategory}
+              error={categoryError}
+              onCategoryChange={setNewCategory}
+              onSubmit={handleAddCategory}
+              onCancel={cancelNewCategory}
+            />
+          )}
 
-              <ul>
-                {categoryTodos.map((todo) => (
-                  <li className="todo-item" key={todo.id}>
-                    <p>{todo.description}</p>
-                    <select
-                      aria-label={`Status for ${todo.description}`}
-                      value={todo.status}
-                      disabled={updatingTodoId === todo.id}
-                      onChange={(e) => void handleStatusChange(todo, e.target.value as TodoStatus)}
-                    >
-                      {TODO_STATUSES.map((status) => (
-                        <option key={status} value={status}>
-                          {STATUS_LABELS[status]}
-                        </option>
-                      ))}
-                    </select>
-                  </li>
-                ))}
-              </ul>
-
-              {addingTodoFor === category ? (
-                <form className="new-todo-form" onSubmit={(e) => void handleCreateTodo(e, category)}>
-                  <label>
-                    <span className="sr-only">Todo description</span>
-                    <textarea
-                      autoFocus
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      placeholder="What needs to be done?"
-                      rows={2}
-                      required
-                    />
-                  </label>
-                  <div className="new-todo-footer">
-                    <label className="status-picker">
-                      Status
-                      <select value={newTodoStatus} onChange={(e) => setNewTodoStatus(e.target.value as TodoStatus)}>
-                        {TODO_STATUSES.map((status) => (
-                          <option key={status} value={status}>
-                            {STATUS_LABELS[status]}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <div className="inline-actions">
-                      <button className="button" type="submit" disabled={creatingTodo}>
-                        {creatingTodo ? "Adding..." : "Add todo"}
-                      </button>
-                      <button className="button button-secondary" type="button" onClick={cancelTodoComposer}>
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                  {todoError && <p className="form-error">{todoError}</p>}
-                </form>
-              ) : (
-                <button className="add-todo-button" type="button" onClick={() => openTodoComposer(category)}>
-                  + Add todo
-                </button>
-              )}
+          {categories.length === 0 && !isAddingCategory ? (
+            <section className="empty-state">
+              <h2>Create your first category</h2>
+              <p>Group the things you want to get done.</p>
+              <button className="button" type="button" onClick={openNewCategory}>Add new category</button>
             </section>
-          ))
-        )}
-      </section>
+          ) : selectedCategory ? (
+            <TaskPanel
+              category={selectedCategory}
+              activeTodos={activeTodos}
+              completedTodos={completedTodos}
+              description={description}
+              isComposerOpen={Boolean(addingTodoFor && sameCategory(addingTodoFor, selectedCategory))}
+              isCreating={creatingTodo}
+              updatingTodoId={updatingTodoId}
+              error={todoError}
+              onDescriptionChange={setDescription}
+              onOpenComposer={() => openTodoComposer(selectedCategory)}
+              onCancelComposer={cancelTodoComposer}
+              onCreateTodo={(event) => void handleCreateTodo(event, selectedCategory)}
+              onStatusChange={(todo, status) => void handleStatusChange(todo, status)}
+            />
+          ) : null}
+        </>
+      )}
+
+      {loading && <p className="muted">Loading tasks…</p>}
     </main>
   );
 }

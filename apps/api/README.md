@@ -179,7 +179,7 @@ curl "http://127.0.0.1:8000/api/todos/?status=pending" \
   -H "Authorization: Token 9944b09199c62bcf9418ad846dd0e4bbdfc6ee4b"
 ```
 
-Valores válidos: `pending`, `in_progress`, `done`.
+Valores válidos: `pending`, `done`.
 
 ### Atualizar o status de uma TODO
 

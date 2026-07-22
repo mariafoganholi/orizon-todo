@@ -4,7 +4,6 @@ from django.db import models
 class Todo(models.Model):
     class Status(models.TextChoices):
         PENDING = 'pending', 'Pending'
-        IN_PROGRESS = 'in_progress', 'In Progress'
         DONE = 'done', 'Done'
 
     user = models.ForeignKey(

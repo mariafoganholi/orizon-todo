@@ -33,7 +33,7 @@ type ApiError = {
   status?: string[];
 };
 
-export type TodoStatus = "pending" | "in_progress" | "done";
+export type TodoStatus = "pending" | "done";
 
 export type Todo = {
   id: number;
