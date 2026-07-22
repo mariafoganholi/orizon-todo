@@ -183,7 +183,6 @@
   }
 }
 
-.login-page,
 .todo-page {
   width: min(100%, 960px);
   margin: 0 auto;
@@ -192,15 +191,57 @@
   text-align: left;
 }
 
-.login-page {
+.auth-page {
   display: grid;
-  gap: 20px;
+  min-height: 100svh;
+  place-items: center;
+  padding: 32px;
+  box-sizing: border-box;
+}
 
-  form {
-    display: grid;
-    gap: 16px;
-    max-width: 420px;
+.auth-card {
+  display: grid;
+  width: min(100%, 460px);
+  gap: 20px;
+  padding: 36px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--bg) 94%, var(--code-bg));
+  text-align: left;
+
+  h1 {
+    margin: 0;
+    font-size: 36px;
   }
+}
+
+.auth-eyebrow {
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.auth-description,
+.auth-switch {
+  font-size: 16px;
+}
+
+.auth-switch a {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.auth-form {
+  display: grid;
+  gap: 16px;
+}
+
+.auth-name-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
 }
 
 .todo-header {
@@ -326,6 +367,20 @@ textarea:focus {
   padding: 10px 12px;
   background: var(--accent-bg);
   color: var(--text-h);
+}
+
+@media (max-width: 480px) {
+  .auth-page {
+    padding: 16px;
+  }
+
+  .auth-card {
+    padding: 24px;
+  }
+
+  .auth-name-fields {
+    grid-template-columns: 1fr;
+  }
 }
 
 .alert {

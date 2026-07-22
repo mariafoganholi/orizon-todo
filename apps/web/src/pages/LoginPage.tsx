@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { login, saveToken } from "../api/client";
 
 export default function LoginPage() {
@@ -28,10 +28,12 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="login-page">
-      <h1>Login</h1>
+    <main className="auth-page">
+      <section className="auth-card" aria-labelledby="login-heading">
+      <p className="auth-eyebrow">Welcome back</p>
+      <h1 id="login-heading">Log in</h1>
       {state?.message && <p className="alert">{state.message}</p>}
-      <form onSubmit={handleSubmit}>
+      <form className="auth-form" onSubmit={handleSubmit}>
         <label>
           Username
           <input
@@ -49,11 +51,15 @@ export default function LoginPage() {
             required
           />
         </label>
-        {error && <p style={{ color: "red" }}>{error}</p>}
-        <button type="submit" disabled={loading}>
-          {loading ? "Entrando..." : "Entrar"}
+        {error && <p className="form-error" role="alert">{error}</p>}
+        <button className="button" type="submit" disabled={loading}>
+          {loading ? "Logging in..." : "Log in"}
         </button>
       </form>
+      <p className="auth-switch">
+        New here? <Link to="/signup">Create an account</Link>
+      </p>
+      </section>
     </main>
   );
 }

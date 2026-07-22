@@ -4,9 +4,30 @@ type LoginResponse = {
   token: string;
 };
 
+export type RegisterPayload = {
+  username: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  password: string;
+};
+
+type RegisterResponse = LoginResponse & {
+  id: number;
+  username: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+};
+
 type ApiError = {
   non_field_errors?: string[];
   detail?: string;
+  username?: string[];
+  email?: string[];
+  first_name?: string[];
+  last_name?: string[];
+  password?: string[];
   description?: string[];
   category?: string[];
   status?: string[];
@@ -56,6 +77,22 @@ export async function login(
   return { token: data.token };
 }
 
+export async function register(payload: RegisterPayload): Promise<RegisterResponse> {
+  const response = await fetch(`${API_BASE}/api/register/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  const data = (await readJson<RegisterResponse & ApiError>(response)) ?? null;
+
+  if (!response.ok) {
+    throw new Error(formatApiError(data, "Could not create your account"));
+  }
+
+  return data as RegisterResponse;
+}
+
 async function readJson<T>(response: Response): Promise<T | null> {
   const text = await response.text();
 
@@ -69,6 +106,11 @@ async function readJson<T>(response: Response): Promise<T | null> {
 function formatApiError(data: ApiError | null, fallback: string): string {
   return (
     data?.non_field_errors?.[0] ??
+    data?.username?.[0] ??
+    data?.email?.[0] ??
+    data?.first_name?.[0] ??
+    data?.last_name?.[0] ??
+    data?.password?.[0] ??
     data?.description?.[0] ??
     data?.category?.[0] ??
     data?.status?.[0] ??
