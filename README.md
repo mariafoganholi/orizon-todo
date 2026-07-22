@@ -27,6 +27,8 @@ Detalhes: [`apps/api/README.md`](apps/api/README.md)
 
 Interface web: login, cadastro e painel de tarefas (categorias + status).
 
+Detalhes: [`apps/web/README.md`](apps/web/README.md)
+
 ## Stack
 
 - **API:** Python, Django, DRF, SQLite
@@ -40,12 +42,7 @@ Suba API e web em terminais separados.
 ### API
 
 ```bash
-cd apps/api
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-python manage.py migrate
-python manage.py runserver
+docker compose up
 ```
 
 API em `http://127.0.0.1:8000/`

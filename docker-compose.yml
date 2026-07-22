@@ -1,0 +1,40 @@
+# Uso: docker compose up --build
+#
+# API  -> http://127.0.0.1:8000
+# Web  -> http://127.0.0.1:5173
+
+services:
+  api:
+    image: python:3.14-slim
+    working_dir: /app
+    volumes:
+      - ./apps/api:/app
+    ports:
+      - "8000:8000"
+    command: >
+      sh -c "pip install --no-cache-dir -r requirements.txt
+      && python manage.py migrate
+      && python manage.py runserver 0.0.0.0:8000"
+    environment:
+      PYTHONDONTWRITEBYTECODE: "1"
+      PYTHONUNBUFFERED: "1"
+
+  web:
+    image: node:22-alpine
+    working_dir: /app
+    volumes:
+      - ./apps/web:/app
+      - web_node_modules:/app/node_modules
+    ports:
+      - "5173:5173"
+    command: >
+      sh -c "npm install
+      && npm run dev -- --host 0.0.0.0 --port 5173"
+    depends_on:
+      - api
+    environment:
+      # Browser chama a API no host; shared.ts já usa http://127.0.0.1:8000
+      CHOKIDAR_USEPOLLING: "true"
+
+volumes:
+  web_node_modules:
