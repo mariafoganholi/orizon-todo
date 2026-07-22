@@ -38,3 +38,17 @@ export function updateTodoStatus(
     body: JSON.stringify({ status }),
   });
 }
+
+export function deleteCategory(category: string): Promise<void> {
+  return authedRequest("/api/todos", {
+    method: "DELETE",
+    body: JSON.stringify({ category }),
+  });
+}
+
+export function deleteTodo(id: number): Promise<void> {
+  return authedRequest("/api/todos", {
+    method: "DELETE",
+    body: JSON.stringify({ id }),
+  });
+}

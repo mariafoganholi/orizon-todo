@@ -68,6 +68,43 @@ class TodoView(APIView):
         todo = serializer.save(user=request.user)
         return Response(TodoSerializer(todo).data, status=status.HTTP_201_CREATED)
 
+    def delete(self, request):
+        todo_id = request.data.get('id')
+        category = request.data.get('category')
+
+        if todo_id is not None and category is not None:
+            return Response(
+                {'detail': 'Send either id or category, not both.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if todo_id is None and category is None:
+            return Response(
+                {'detail': 'Send id or category.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # delete by id
+        if todo_id is not None:
+            todo = Todo.objects.filter(pk=todo_id, user=request.user).first()
+            if todo is None:
+                return Response(status=status.HTTP_404_NOT_FOUND)
+            todo.delete()
+            return Response(
+                {'deleted': 1, 'id': todo_id},
+                status=status.HTTP_200_OK,
+            )
+
+        # batch delete by category
+        deleted_count, _ = Todo.objects.filter(
+            user=request.user,
+            category=category,
+        ).delete()
+        return Response(
+            {'deleted': deleted_count, 'category': category},
+            status=status.HTTP_200_OK,
+        )
+
 class TodoStatusUpdateView(APIView):
     permission_classes = [IsAuthenticated]
 
