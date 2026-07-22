@@ -1,9 +1,11 @@
 import { useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { login, saveToken } from "../api/client";
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const state = location.state as { message?: string } | null;
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -17,7 +19,7 @@ export default function LoginPage() {
     try {
       const data = await login(username, password);
       saveToken(data.token);
-      navigate("/todos");
+      navigate("/todos", { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {
@@ -26,8 +28,9 @@ export default function LoginPage() {
   }
 
   return (
-    <main>
+    <main className="login-page">
       <h1>Login</h1>
+      {state?.message && <p className="alert">{state.message}</p>}
       <form onSubmit={handleSubmit}>
         <label>
           Username

@@ -1,9 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import "./App.css";
 import LoginPage from "./pages/LoginPage";
-
-function TodosPage() {
-  return <h1>Todos (próximo passo)</h1>;
-}
+import TodosPage from "./pages/TodosPage";
 
 export default function App() {
   return (
