@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 
+from .models import Todo
 from .serializers import RegisterSerializer, TodoSerializer
 
 class RegisterView(APIView):
@@ -27,8 +28,23 @@ class RegisterView(APIView):
             status=status.HTTP_201_CREATED,
         )
     
-class TodoCreateView(APIView):
+class TodoView(APIView):
     permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        todos = Todo.objects.filter(user=request.user).order_by('-id')
+
+        status_filter = request.query_params.get('status')
+        if status_filter:
+            valid = {c.value for c in Todo.Status}
+            if status_filter not in valid:
+                return Response(
+                    {'status': [f'Must be one of: {", ".join(sorted(valid))}']},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            todos = todos.filter(status=status_filter)
+
+        return Response(TodoSerializer(todos, many=True).data)
 
     def post(self, request):
         serializer = TodoSerializer(data=request.data)
