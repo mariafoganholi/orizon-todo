@@ -1,11 +1,5 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  type SubmitEvent,
-} from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState, type SubmitEvent } from "react";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import {
   createTodo,
   listTodos,
@@ -13,7 +7,6 @@ import {
   type Todo,
   type TodoStatus,
 } from "../api/todo";
-import { clearToken, getToken, ApiAuthError } from "../api/auth";
 import CategoryComposer from "../components/todos/CategoryComposer";
 import CategoryNavigation from "../components/todos/CategoryNavigation";
 import TaskPanel from "../components/todos/TaskPanel";
@@ -22,6 +15,7 @@ import {
   normalizeCategory,
   sameCategory,
 } from "../components/todos/categoryUtils";
+import type { AuthOutletContext } from "../components/ProtectedRoute";
 
 export default function TodosPage() {
   const navigate = useNavigate();
@@ -39,26 +33,10 @@ export default function TodosPage() {
   const [categoryError, setCategoryError] = useState("");
   const [todoError, setTodoError] = useState("");
   const [statusError, setStatusError] = useState("");
-
-  const handleAuthError = useCallback(
-    (err: unknown) => {
-      if (!(err instanceof ApiAuthError)) return false;
-      clearToken();
-      navigate("/login", {
-        replace: true,
-        state: { message: "Your session expired. Please log in again." },
-      });
-      return true;
-    },
-    [navigate]
-  );
+  const { handleAuthError, user, logout } =
+    useOutletContext<AuthOutletContext>();
 
   useEffect(() => {
-    if (!getToken()) {
-      navigate("/login", { replace: true });
-      return;
-    }
-
     let ignore = false;
     async function loadTodos() {
       setLoading(true);
@@ -218,14 +196,13 @@ export default function TodosPage() {
       <header className="workspace-header">
         <div>
           <p className="todo-eyebrow">Workspace</p>
-          <h1>My tasks</h1>
+          <h1>{user.first_name} TODO list</h1>
         </div>
         <button
           className="logout-button"
           type="button"
           onClick={() => {
-            clearToken();
-            navigate("/login", { replace: true });
+            logout();
           }}
         >
           Log out

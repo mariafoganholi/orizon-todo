@@ -1,6 +1,7 @@
 import { useState, type SubmitEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { login, saveToken } from "../api/auth";
+
+import { useAuth } from "../components/AuthProvider";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -8,23 +9,12 @@ export default function LoginPage() {
   const state = location.state as { message?: string } | null;
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const { error, login, isLoading } = useAuth();
 
-  async function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-
-    try {
-      const data = await login(username, password);
-      saveToken(data.token);
-      navigate("/todos", { replace: true });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed");
-    } finally {
-      setLoading(false);
-    }
+  async function handleSubmit(event: SubmitEvent) {
+    event.preventDefault();
+    const ok = await login(username, password);
+    if (ok) navigate("/todos", { replace: true });
   }
 
   return (
@@ -56,8 +46,8 @@ export default function LoginPage() {
               {error}
             </p>
           )}
-          <button className="button" type="submit" disabled={loading}>
-            {loading ? "Logging in..." : "Log in"}
+          <button className="button" type="submit" disabled={isLoading}>
+            {isLoading ? "Logging in..." : "Log in"}
           </button>
         </form>
         <p className="auth-switch">

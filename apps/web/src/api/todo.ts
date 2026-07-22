@@ -1,4 +1,4 @@
-import { authedRequest } from "./shared";
+import { authedRequest } from "./auth";
 
 export type TodoStatus = "pending" | "done";
 

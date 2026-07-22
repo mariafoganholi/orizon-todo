@@ -3,9 +3,12 @@ from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth import get_user_model
 
 from .models import Todo
 from .serializers import RegisterSerializer, TodoSerializer
+
+User = get_user_model()
 
 class RegisterView(APIView):
     authentication_classes = []  # public
@@ -27,6 +30,19 @@ class RegisterView(APIView):
             },
             status=status.HTTP_201_CREATED,
         )
+
+class MeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        u = request.user
+        return Response({
+            "id": u.pk,
+            "email": u.email,
+            "username": u.get_username(),
+            "first_name": u.first_name,
+            "last_name": u.last_name,
+        })
     
 class TodoView(APIView):
     permission_classes = [IsAuthenticated]
