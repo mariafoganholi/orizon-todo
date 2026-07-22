@@ -51,3 +51,23 @@ class TodoView(APIView):
         serializer.is_valid(raise_exception=True)
         todo = serializer.save(user=request.user)
         return Response(TodoSerializer(todo).data, status=status.HTTP_201_CREATED)
+
+class TodoStatusUpdateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, pk):
+        todo = Todo.objects.filter(pk=pk, user=request.user).first()
+        if todo is None:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        new_status = request.data.get('status')
+        valid = {c.value for c in Todo.Status}
+        if new_status not in valid:
+            return Response(
+                {'status': [f'Must be one of: {", ".join(sorted(valid))}']},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        todo.status = new_status
+        todo.save(update_fields=['status'])
+        return Response(TodoSerializer(todo).data)
