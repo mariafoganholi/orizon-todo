@@ -85,6 +85,12 @@ API disponível em `http://127.0.0.1:8000/`.
 
 Admin disponível em `http://127.0.0.1:8000/admin/`.
 
+## Rodando os testes
+
+```bash
+python manage.py test
+```
+
 ---
 
 ## Exemplos de uso
