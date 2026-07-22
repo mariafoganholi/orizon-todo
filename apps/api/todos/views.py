@@ -2,8 +2,9 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 
-from .serializers import RegisterSerializer
+from .serializers import RegisterSerializer, TodoSerializer
 
 class RegisterView(APIView):
     authentication_classes = []  # public
@@ -25,3 +26,12 @@ class RegisterView(APIView):
             },
             status=status.HTTP_201_CREATED,
         )
+    
+class TodoCreateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = TodoSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        todo = serializer.save(user=request.user)
+        return Response(TodoSerializer(todo).data, status=status.HTTP_201_CREATED)

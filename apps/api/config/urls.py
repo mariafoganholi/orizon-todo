@@ -17,10 +17,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from rest_framework.authtoken.views import obtain_auth_token
-from todos.views import RegisterView
+from todos.views import RegisterView, TodoCreateView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/login/', obtain_auth_token, name='api_login'),
     path('api/register/', RegisterView.as_view(), name='api_register'),
+    path('api/todos/', TodoCreateView.as_view(), name='todo_create')
 ]

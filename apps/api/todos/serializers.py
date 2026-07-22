@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-
+from .models import Todo
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=8)
@@ -17,3 +17,15 @@ class RegisterSerializer(serializers.ModelSerializer):
             last_name=validated_data.get('last_name', ''),
             password=validated_data['password'],  # hashed by create_user
         )
+    
+class TodoSerializer(serializers.ModelSerializer):
+    status = serializers.ChoiceField(
+        choices=Todo.Status.choices,
+        required=False,
+        default=Todo.Status.PENDING
+    )
+    
+    class Meta:
+        model = Todo
+        fields = ('id', 'user', 'description', 'status', 'category')
+        read_only_fields = ('id', 'user')
