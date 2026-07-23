@@ -4,6 +4,7 @@ type CategoryNavigationProps = {
   categories: string[];
   selectedCategory: string | null;
   onSelectCategory: (category: string) => void;
+  onDeleteCategory: (category: string) => void;
   onAddCategory: () => void;
 };
 
@@ -12,6 +13,7 @@ export default function CategoryNavigation({
   selectedCategory,
   onSelectCategory,
   onAddCategory,
+  onDeleteCategory,
 }: CategoryNavigationProps) {
   const tabListRef = useRef<HTMLDivElement>(null);
   const [canScrollBack, setCanScrollBack] = useState(false);
@@ -21,7 +23,9 @@ export default function CategoryNavigation({
     const tabList = tabListRef.current;
     if (!tabList) return;
     setCanScrollBack(tabList.scrollLeft > 1);
-    setCanScrollForward(tabList.scrollLeft + tabList.clientWidth < tabList.scrollWidth - 1);
+    setCanScrollForward(
+      tabList.scrollLeft + tabList.clientWidth < tabList.scrollWidth - 1
+    );
   }, []);
 
   useEffect(() => {
@@ -51,7 +55,11 @@ export default function CategoryNavigation({
       >
         ‹
       </button>
-      <div className="category-tabs" ref={tabListRef} onScroll={updateScrollButtons}>
+      <div
+        className="category-tabs"
+        ref={tabListRef}
+        onScroll={updateScrollButtons}
+      >
         {categories.map((category) => {
           const isSelected = category === selectedCategory;
           return (
@@ -63,6 +71,15 @@ export default function CategoryNavigation({
               onClick={() => onSelectCategory(category)}
             >
               {category}
+              {isSelected && (
+                <button
+                  className="delete-button"
+                  type="button"
+                  onClick={() => onDeleteCategory(category)}
+                >
+                  x
+                </button>
+              )}
             </button>
           );
         })}
@@ -76,7 +93,11 @@ export default function CategoryNavigation({
       >
         ›
       </button>
-      <button className="new-category-button" type="button" onClick={onAddCategory}>
+      <button
+        className="new-category-button"
+        type="button"
+        onClick={onAddCategory}
+      >
         <span aria-hidden="true">+</span> Add new category
       </button>
     </nav>

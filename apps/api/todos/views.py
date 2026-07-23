@@ -67,8 +67,11 @@ class TodoView(APIView):
         serializer.is_valid(raise_exception=True)
         todo = serializer.save(user=request.user)
         return Response(TodoSerializer(todo).data, status=status.HTTP_201_CREATED)
+    
+class TodoDeleteView(APIView):
+    permission_classes = [IsAuthenticated]
 
-    def delete(self, request):
+    def post(self, request):
         todo_id = request.data.get('id')
         category = request.data.get('category')
 

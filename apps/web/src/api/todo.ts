@@ -40,15 +40,15 @@ export function updateTodoStatus(
 }
 
 export function deleteCategory(category: string): Promise<void> {
-  return authedRequest("/api/todos", {
-    method: "DELETE",
+  return authedRequest("/api/todos/delete/", {
+    method: "POST",
     body: JSON.stringify({ category }),
   });
 }
 
 export function deleteTodo(id: number): Promise<void> {
-  return authedRequest("/api/todos", {
-    method: "DELETE",
+  return authedRequest("/api/todos/delete/", {
+    method: "POST",
     body: JSON.stringify({ id }),
   });
 }

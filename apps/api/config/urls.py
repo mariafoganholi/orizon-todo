@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from rest_framework.authtoken.views import obtain_auth_token
-from todos.views import RegisterView, TodoStatusUpdateView, TodoView, MeView
+from todos.views import RegisterView, TodoStatusUpdateView, TodoView, MeView, TodoDeleteView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -26,4 +26,5 @@ urlpatterns = [
     path('api/register/', RegisterView.as_view(), name='api_register'),
     path('api/todos/', TodoView.as_view(), name='todo'),
     path('api/todos/<int:pk>/status/', TodoStatusUpdateView.as_view(), name='todo_status_update'),
+    path('api/todos/delete/', TodoDeleteView.as_view(), name='todo_delete'),
 ]

@@ -1,5 +1,6 @@
 import type { SubmitEvent } from "react";
 import type { Todo, TodoStatus } from "../../api/todo";
+import { TaskRow } from "./TaskRow";
 
 type TaskPanelProps = {
   category: string;
@@ -15,34 +16,8 @@ type TaskPanelProps = {
   onCancelComposer: () => void;
   onCreateTodo: (event: SubmitEvent<HTMLFormElement>) => void;
   onStatusChange: (todo: Todo, status: TodoStatus) => void;
+  onDeleteTodo: (todo: Todo) => void;
 };
-
-function TaskRow({
-  todo,
-  completed,
-  disabled,
-  onStatusChange,
-}: {
-  todo: Todo;
-  completed: boolean;
-  disabled: boolean;
-  onStatusChange: (todo: Todo, status: TodoStatus) => void;
-}) {
-  return (
-    <li className={`task-row${completed ? " is-completed" : ""}`}>
-      <input
-        aria-label={`Mark ${todo.description} as ${
-          completed ? "active" : "completed"
-        }`}
-        checked={completed}
-        disabled={disabled}
-        type="checkbox"
-        onChange={() => onStatusChange(todo, completed ? "pending" : "done")}
-      />
-      <span>{todo.description}</span>
-    </li>
-  );
-}
 
 export default function TaskPanel({
   category,
@@ -58,6 +33,7 @@ export default function TaskPanel({
   onCancelComposer,
   onCreateTodo,
   onStatusChange,
+  onDeleteTodo,
 }: TaskPanelProps) {
   return (
     <section className="task-panel" aria-live="polite">
@@ -74,6 +50,7 @@ export default function TaskPanel({
             completed={false}
             disabled={updatingTodoId === todo.id}
             onStatusChange={onStatusChange}
+            onDeleteTodo={onDeleteTodo}
           />
         ))}
       </ul>
@@ -130,6 +107,7 @@ export default function TaskPanel({
                 completed
                 disabled={updatingTodoId === todo.id}
                 onStatusChange={onStatusChange}
+                onDeleteTodo={onDeleteTodo}
               />
             ))}
           </ul>

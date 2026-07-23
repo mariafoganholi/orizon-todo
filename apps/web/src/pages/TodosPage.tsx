@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState, type SubmitEvent } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import {
   createTodo,
+  deleteCategory,
+  deleteTodo,
   listTodos,
   updateTodoStatus,
   type Todo,
@@ -191,6 +193,37 @@ export default function TodosPage() {
     }
   }
 
+  async function handleDelete(todo: Todo) {
+    setUpdatingTodoId(todo.id);
+    try {
+      await deleteTodo(todo.id);
+      setTodos(todos.filter((currentTodo) => currentTodo.id !== todo.id));
+    } catch (err) {
+      if (handleAuthError(err)) return;
+      setStatusError(
+        err instanceof Error ? err.message : "Could not delete status"
+      );
+    } finally {
+      setUpdatingTodoId(null);
+    }
+  }
+
+  async function handleDeleteCategory(category: string) {
+    try {
+      await deleteCategory(category);
+      const filteredTodos = todos.filter(
+        (currentTodo) => currentTodo.category !== category
+      );
+      setTodos(filteredTodos);
+      selectCategory(getCategories(filteredTodos, null)[0] ?? null);
+    } catch (err) {
+      if (handleAuthError(err)) return;
+      setStatusError(
+        err instanceof Error ? err.message : "Could not delete status"
+      );
+    }
+  }
+
   return (
     <main className="todo-page">
       <header className="workspace-header">
@@ -219,8 +252,8 @@ export default function TodosPage() {
             selectedCategory={selectedCategory}
             onSelectCategory={selectCategory}
             onAddCategory={openNewCategory}
+            onDeleteCategory={handleDeleteCategory}
           />
-
           {isAddingCategory && (
             <CategoryComposer
               category={newCategory}
@@ -264,6 +297,9 @@ export default function TodosPage() {
               onStatusChange={(todo, status) =>
                 void handleStatusChange(todo, status)
               }
+              onDeleteTodo={(todo) => {
+                void handleDelete(todo);
+              }}
             />
           ) : null}
         </>

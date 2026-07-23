@@ -81,6 +81,21 @@
   cursor: pointer;
 }
 
+.delete-button {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  color: #dc2626;
+  background-color: transparent;
+  font-size: 17px;
+}
+
+.delete-button:hover { 
+  color: #b91c1c;
+}
+
 .category-tab {
   flex: 0 0 auto;
   border-radius: 8px;
