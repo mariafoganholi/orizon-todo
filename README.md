@@ -56,7 +56,3 @@ npm run dev
 ```
 
 App em `http://127.0.0.1:5173/` (porta padrão do Vite)
-
-## Objetivo
-
-Projeto parte de uma entrevista com objetivo full-stack: auth por token, CRUD de TODOs e UI React consumindo a API Django.
